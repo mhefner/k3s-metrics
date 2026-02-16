@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 66.3.1
+      helm:
+        releaseName: kube-prom-stack
+        valueFiles:
+          - $values/monitoring/values.yaml
+    - repoURL: git@github.com:mhefner/k3s-metrics.git
+      targetRevision: main
+      ref: values
+    - repoURL: git@github.com:mhefner/k3s-metrics.git
+      targetRevision: main
+      path: monitoring/manifests
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
